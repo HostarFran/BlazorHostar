@@ -1,10 +1,35 @@
 using BlazorAppHostar.Components;
+using Supabase;
+using Supabase.Postgrest;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// Read Supabase configuration
+var supabaseUrl = builder.Configuration["Supabase:Url"];
+var supabaseKey = builder.Configuration["Supabase:Key"];
+
+// Check if values are null or empty
+if (string.IsNullOrEmpty(supabaseUrl) || string.IsNullOrEmpty(supabaseKey))
+{
+    throw new Exception("Supabase URL or Key is missing in configuration.");
+}
+
+// Register Supabase as a singleton service
+builder.Services.AddSingleton(_ =>
+    new Supabase.Client(
+        supabaseUrl,
+        supabaseKey,
+        new SupabaseOptions
+        {
+            AutoRefreshToken = true,
+            AutoConnectRealtime = true
+        }
+    )
+);
 
 var app = builder.Build();
 
