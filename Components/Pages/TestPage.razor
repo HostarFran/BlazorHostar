@@ -1,0 +1,43 @@
+﻿@page "/test"
+@inject Supabase.Client SupabaseClient
+
+<h3>Supabase Connection Test</h3>
+
+@if (statusMessage == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <p>@statusMessage</p>
+}
+
+@code {
+    private string statusMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        statusMessage = "Connecting to Supabase...";
+
+        try
+        {
+            await SupabaseClient.InitializeAsync();
+
+            // Fetch test data using the correct model
+            var response = await SupabaseClient.From<TestTable>().Select("*").Get();
+
+            if (response.Models.Count > 0)
+            {
+                statusMessage = $"✅ Supabase is online! Fetched {response.Models.Count} rows.";
+            }
+            else
+            {
+                statusMessage = "✅ Supabase is online! But no data was found.";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"❌ Supabase connection failed! Error: {ex.Message}";
+        }
+    }
+}
